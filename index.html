@@ -27,6 +27,13 @@
                 <input type="text" id="workerId" placeholder="Enter your worker ID" required>
                 <button onclick="initializeWorker()">Start Task</button>
             </div>
+
+            <!-- QR Code for Mobile Access -->
+            <div class="mobile-qr" id="mobileQR">
+                <p>Scan to open on mobile:</p>
+                <img src="qr-code.png" alt="QR Code for https://handwriting-ocr.netlify.app/" id="qrcode">
+                <p class="url-text">https://handwriting-ocr.netlify.app/</p>
+            </div>
         </div>
     </div>
 

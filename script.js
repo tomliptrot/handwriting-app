@@ -13,6 +13,7 @@ let s3 = null;
 document.addEventListener('DOMContentLoaded', function() {
     initializeServices();
     updateTargetDisplay();
+    showQRCodeOnDesktop();
 });
 
 // Initialize AWS and Database services
@@ -509,6 +510,14 @@ function showStatus(message, type) {
 
 function hideStatus() {
     document.getElementById('status').style.display = 'none';
+}
+
+// Show QR code only on desktop
+function showQRCodeOnDesktop() {
+    // Only show QR code on desktop (screen width > 768px)
+    if (window.innerWidth <= 768) {
+        document.getElementById('mobileQR').style.display = 'none';
+    }
 }
 
 // Keyboard shortcuts
