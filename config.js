@@ -53,6 +53,10 @@ window.APP_CONFIG = {
         showStats: true,
         allowSkipping: true,
         trackTiming: true,
-        requirePreview: true
-    }
+        requirePreview: true,
+        showVideo: true
+    },
+    
+    // Video configuration
+    videoId: 'YOUR_VIDEO_ID' // Replace with your YouTube video ID
 };

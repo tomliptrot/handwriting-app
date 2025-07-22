@@ -50,6 +50,15 @@ body {
     padding-left: 20px;
 }
 
+.video-instructions {
+    margin-bottom: 20px;
+}
+
+.video-instructions iframe {
+    border-radius: 8px;
+    max-width: 100%;
+}
+
 .instructions li {
     margin-bottom: 8px;
     font-size: 1.1rem;
