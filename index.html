@@ -73,18 +73,24 @@
             </div>
             
             <!-- Instructions -->
-            <div class="task-instructions">
-                <div class="step">
-                    <span class="step-number">1</span>
-                    <span class="step-text">Write the code above on blank paper with pen or pencil. Use capital letters only.</span>
+            <div class="task-instructions" id="taskInstructions">
+                <div class="instructions-header">
+                    <h3>Instructions</h3>
+                    <button class="toggle-instructions" id="toggleInstructions" onclick="toggleInstructions()">Hide</button>
                 </div>
-                <div class="step">
-                    <span class="step-number">2</span>
-                    <span class="step-text">Take a clear photo of your handwritten code</span>
-                </div>
-                <div class="step">
-                    <span class="step-number">3</span>
-                    <span class="step-text">Upload the photo using the button below</span>
+                <div class="instructions-content" id="instructionsContent">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Write the code above on blank paper with pen or pencil. Use capital letters only.</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Take a clear photo of your handwritten code</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <span class="step-text">Upload the photo using the button below</span>
+                    </div>
                 </div>
             </div>
             
@@ -159,6 +165,8 @@
         </div>
     </div>
 
+    <!-- AWS SDK for local development -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1563.0.min.js"></script>
     <script src="config.local.js"></script> <!-- Load local config first (if exists) -->
     <script src="config.js"></script>
     <script src="script.js"></script>

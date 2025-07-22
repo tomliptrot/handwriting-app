@@ -15,6 +15,7 @@ CREATE TABLE sessions (
   worker_id TEXT REFERENCES workers(worker_id),
   started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   completed_at TIMESTAMP WITH TIME ZONE,
+  last_activity TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   target_images INTEGER,
   completed_images INTEGER DEFAULT 0,
   skipped_codes INTEGER DEFAULT 0,

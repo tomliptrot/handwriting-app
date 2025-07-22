@@ -7,6 +7,8 @@ let currentFile = null;
 let sessionStartTime = null;
 let sessionId = null;
 let db = null;
+let s3 = null;
+let isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'|| window.location.hostname === '0.0.0.0' || window.location.protocol === 'file:' ;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,6 +20,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize Database services
 async function initializeServices() {
     try {
+        // Initialize AWS S3 for local development
+        if (isLocalDevelopment && window.AWS && localConfig) {
+            AWS.config.update({
+                accessKeyId: localConfig.accessKeyId,
+                secretAccessKey: localConfig.secretAccessKey,
+                region: 'eu-west-2'
+            });
+            s3 = new AWS.S3();
+            console.log('AWS S3 initialized for local development');
+        }
+        
         // Initialize Database
         if (DB_CONFIG.supabase.enabled) {
             // Load Supabase
@@ -341,48 +354,75 @@ function confirmUpload() {
     uploadImage(currentFile);
 }
 
-// Upload image via Netlify function
+// Upload image (local or Netlify function)
 async function uploadImage(file) {
     showStatus('Uploading image...', 'info');
     showUploadProgress(0);
     
     try {
         const filename = generateFilename();
+        let s3Key = `images/${filename}`;
         
-        // Convert file to base64
-        const base64Data = await fileToBase64(file);
-        
-        const payload = {
-            imageData: base64Data,
-            filename: filename,
-            metadata: {
-                workerId: workerId,
-                sessionId: sessionId,
-                code: currentCode
+        if (isLocalDevelopment && s3) {
+            // Local development - direct S3 upload
+            const params = {
+                Bucket: 'ocr-handwriting-data-collection',
+                Key: s3Key,
+                Body: file,
+                ContentType: file.type,
+                Metadata: {
+                    'worker-id': workerId,
+                    'session-id': sessionId,
+                    'original-code': currentCode,
+                    'upload-timestamp': new Date().toISOString()
+                }
+            };
+            
+            const upload = s3.upload(params);
+            
+            // Track upload progress
+            upload.on('httpUploadProgress', function(evt) {
+                const percent = Math.round((evt.loaded * 100) / evt.total);
+                showUploadProgress(percent);
+            });
+            
+            await upload.promise();
+            
+        } else {
+            // Production - Netlify function
+            const base64Data = await fileToBase64(file);
+            
+            const payload = {
+                imageData: base64Data,
+                filename: filename,
+                metadata: {
+                    workerId: workerId,
+                    sessionId: sessionId,
+                    code: currentCode
+                }
+            };
+            
+            const response = await fetch('/.netlify/functions/upload-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
             }
-        };
-        
-        // Upload via Netlify function
-        const response = await fetch('/.netlify/functions/upload-image', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (!result.success) {
-            throw new Error(result.message || 'Upload failed');
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Upload failed');
+            }
         }
         
         // Log successful upload
-        await logImageUpload(currentCode, filename, result.key);
+        await logImageUpload(currentCode, filename, s3Key);
         
         completedImages++;
         updateProgress();
@@ -394,6 +434,10 @@ async function uploadImage(file) {
         if (completedImages >= APP_CONFIG.targetImages) {
             setTimeout(showCompletion, 1500);
         } else {
+            // Hide instructions after first upload
+            if (completedImages === 1) {
+                hideInstructionsAfterFirst();
+            }
             setTimeout(generateNewCode, 1500);
         }
         
@@ -537,6 +581,28 @@ function showQRCodeOnDesktop() {
     if (window.innerWidth <= 768) {
         document.getElementById('mobileQR').style.display = 'none';
     }
+}
+
+// Instructions toggle functionality
+function toggleInstructions() {
+    const content = document.getElementById('instructionsContent');
+    const button = document.getElementById('toggleInstructions');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        button.textContent = 'Hide';
+    } else {
+        content.style.display = 'none';
+        button.textContent = 'Show';
+    }
+}
+
+function hideInstructionsAfterFirst() {
+    const content = document.getElementById('instructionsContent');
+    const button = document.getElementById('toggleInstructions');
+    
+    content.style.display = 'none';
+    button.textContent = 'Show';
 }
 
 // Keyboard shortcuts
