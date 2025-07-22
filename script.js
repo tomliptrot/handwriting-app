@@ -10,12 +10,120 @@ let db = null;
 let s3 = null;
 let isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'|| window.location.hostname === '0.0.0.0' || window.location.protocol === 'file:' ;
 
+// Cookie management for progress persistence
+function setCookie(name, value, days = 7) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function deleteCookie(name) {
+    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+function saveProgress() {
+    const progressData = {
+        workerId: workerId,
+        completedImages: completedImages,
+        skippedCodes: skippedCodes,
+        sessionStartTime: sessionStartTime ? sessionStartTime.getTime() : null,
+        sessionId: sessionId,
+        currentCode: currentCode,
+        timestamp: Date.now()
+    };
+    setCookie('handwriting_progress', JSON.stringify(progressData));
+}
+
+function loadProgress() {
+    const progressCookie = getCookie('handwriting_progress');
+    if (!progressCookie) return null;
+    
+    try {
+        const progressData = JSON.parse(progressCookie);
+        // Check if progress is less than 24 hours old
+        if (Date.now() - progressData.timestamp > 24 * 60 * 60 * 1000) {
+            deleteCookie('handwriting_progress');
+            return null;
+        }
+        return progressData;
+    } catch (error) {
+        console.error('Error loading progress from cookie:', error);
+        deleteCookie('handwriting_progress');
+        return null;
+    }
+}
+
+function clearProgress() {
+    deleteCookie('handwriting_progress');
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
     initializeServices();
     updateTargetDisplay();
     showQRCodeOnDesktop();
+    
+    // Check for saved progress and restore if available
+    const savedProgress = loadProgress();
+    if (savedProgress) {
+        restoreProgress(savedProgress);
+    }
 });
+
+function restoreProgress(progressData) {
+    // Restore variables
+    workerId = progressData.workerId;
+    completedImages = progressData.completedImages;
+    skippedCodes = progressData.skippedCodes;
+    sessionStartTime = progressData.sessionStartTime ? new Date(progressData.sessionStartTime) : null;
+    sessionId = progressData.sessionId;
+    currentCode = progressData.currentCode;
+    
+    // Update UI
+    document.getElementById('workerIdDisplay').textContent = workerId;
+    if (sessionStartTime) {
+        document.getElementById('sessionTime').textContent = formatTime(sessionStartTime);
+    }
+    
+    // Update progress display
+    updateProgress();
+    updateStats();
+    
+    if (APP_CONFIG.features.showStats) {
+        document.getElementById('workerStats').style.display = 'block';
+    }
+    
+    // Show appropriate interface
+    if (completedImages >= APP_CONFIG.targetImages) {
+        // Session was completed, show completion screen
+        showCompletion();
+    } else {
+        // Resume session
+        document.getElementById('workerSection').style.display = 'none';
+        document.getElementById('mainInterface').style.display = 'block';
+        document.getElementById('currentCode').textContent = currentCode;
+        
+        // Hide instructions if user has already uploaded at least one image
+        if (completedImages > 0) {
+            hideInstructionsAfterFirst();
+        }
+        
+        // Show status message about restored progress
+        showStatus(`Progress restored: ${completedImages}/${APP_CONFIG.targetImages} completed`, 'success');
+    }
+}
 
 // Initialize Database services
 async function initializeServices() {
@@ -93,6 +201,9 @@ async function initializeWorker() {
         
         // Generate first code
         generateNewCode();
+        
+        // Save initial progress
+        saveProgress();
         
     } catch (error) {
         console.error('Worker initialization error:', error);
@@ -285,6 +396,10 @@ async function skipCode() {
     
     skippedCodes++;
     await logCodeSkip(currentCode);
+    
+    // Save progress after skipping
+    saveProgress();
+    
     generateNewCode();
 }
 
@@ -428,6 +543,9 @@ async function uploadImage(file) {
         updateProgress();
         updateStats();
         
+        // Save progress after successful upload
+        saveProgress();
+        
         hideUploadProgress();
         showStatus('Image uploaded successfully!', 'success');
         
@@ -536,6 +654,9 @@ async function showCompletion() {
     document.getElementById('finalImageCount').textContent = completedImages;
     document.getElementById('sessionDuration').textContent = formatDuration(duration);
     document.getElementById('skippedCount').textContent = skippedCodes;
+    
+    // Clear saved progress since session is complete
+    clearProgress();
     
     // Hide main interface and show completion screen
     document.getElementById('mainInterface').style.display = 'none';
