@@ -621,13 +621,22 @@ function updateTargetDisplay() {
     document.getElementById('targetCount').textContent = APP_CONFIG.targetImages;
     document.getElementById('targetCountInstructions').textContent = APP_CONFIG.targetImages;
     
-    // Update video or hide if disabled
+    // Update initial page video or hide if disabled
     const videoSection = document.getElementById('videoInstructions');
     if (APP_CONFIG.features.showVideo && APP_CONFIG.videoId !== 'YOUR_VIDEO_ID') {
         const iframe = videoSection.querySelector('iframe');
         iframe.src = `https://www.youtube.com/embed/${APP_CONFIG.videoId}`;
     } else {
         videoSection.style.display = 'none';
+    }
+    
+    // Update task page video or hide if disabled
+    const taskVideoSection = document.getElementById('taskVideoInstructions');
+    if (APP_CONFIG.features.showVideo && APP_CONFIG.videoId !== 'YOUR_VIDEO_ID') {
+        const iframe = taskVideoSection.querySelector('iframe');
+        iframe.src = `https://www.youtube.com/embed/${APP_CONFIG.videoId}`;
+    } else {
+        taskVideoSection.style.display = 'none';
     }
 }
 

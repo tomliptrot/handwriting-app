@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCR Data Collection</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
     <!-- Worker ID Input Section -->
@@ -79,6 +80,19 @@
                     <button class="toggle-instructions" id="toggleInstructions" onclick="toggleInstructions()">Hide</button>
                 </div>
                 <div class="instructions-content" id="instructionsContent">
+                    <!-- Video Instructions for Task Page -->
+                    <div class="video-instructions" id="taskVideoInstructions">
+                        <iframe 
+                            width="100%" 
+                            height="200" 
+                            src="https://www.youtube.com/embed/YOUR_VIDEO_ID" 
+                            title="Handwriting Task Instructions" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    
                     <div class="step">
                         <span class="step-number">1</span>
                         <span class="step-text">Write the code above on blank paper with pen or pencil. Use capital letters only.</span>
