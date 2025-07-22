@@ -1,0 +1,11 @@
+{
+  "name": "handwriting-ocr-app",
+  "version": "1.0.0",
+  "description": "OCR data collection app for handwritten text samples",
+  "dependencies": {
+    "aws-sdk": "^2.1563.0"
+  },
+  "scripts": {
+    "build": "echo 'No build step needed for static site'"
+  }
+}

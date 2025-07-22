@@ -7,7 +7,6 @@ let currentFile = null;
 let sessionStartTime = null;
 let sessionId = null;
 let db = null;
-let s3 = null;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
@@ -16,17 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     showQRCodeOnDesktop();
 });
 
-// Initialize AWS and Database services
+// Initialize Database services
 async function initializeServices() {
     try {
-        // Initialize AWS S3
-        AWS.config.update({
-            accessKeyId: AWS_CONFIG.accessKeyId,
-            secretAccessKey: AWS_CONFIG.secretAccessKey,
-            region: AWS_CONFIG.region
-        });
-        s3 = new AWS.S3();
-        
         // Initialize Database
         if (DB_CONFIG.supabase.enabled) {
             // Load Supabase
@@ -350,40 +341,48 @@ function confirmUpload() {
     uploadImage(currentFile);
 }
 
-// S3 Upload with progress
+// Upload image via Netlify function
 async function uploadImage(file) {
     showStatus('Uploading image...', 'info');
     showUploadProgress(0);
     
     try {
         const filename = generateFilename();
-        const s3Key = `images/${filename}`;
         
-        const params = {
-            Bucket: AWS_CONFIG.bucketName,
-            Key: s3Key,
-            Body: file,
-            ContentType: file.type,
-            Metadata: {
-                'worker-id': workerId,
-                'session-id': sessionId,
-                'original-code': currentCode,
-                'upload-timestamp': new Date().toISOString()
+        // Convert file to base64
+        const base64Data = await fileToBase64(file);
+        
+        const payload = {
+            imageData: base64Data,
+            filename: filename,
+            metadata: {
+                workerId: workerId,
+                sessionId: sessionId,
+                code: currentCode
             }
         };
         
-        const upload = s3.upload(params);
-        
-        // Track upload progress
-        upload.on('httpUploadProgress', function(evt) {
-            const percent = Math.round((evt.loaded * 100) / evt.total);
-            showUploadProgress(percent);
+        // Upload via Netlify function
+        const response = await fetch('/.netlify/functions/upload-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
         });
         
-        const result = await upload.promise();
+        if (!response.ok) {
+            throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Upload failed');
+        }
         
         // Log successful upload
-        await logImageUpload(currentCode, filename, s3Key);
+        await logImageUpload(currentCode, filename, result.key);
         
         completedImages++;
         updateProgress();
@@ -407,6 +406,16 @@ async function uploadImage(file) {
     // Reset file input
     document.getElementById('cameraInput').value = '';
     currentFile = null;
+}
+
+// Helper function to convert file to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
 }
 
 // Upload progress
