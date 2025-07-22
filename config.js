@@ -58,5 +58,5 @@ window.APP_CONFIG = {
     },
     
     // Video configuration
-    videoId: 'YOUR_VIDEO_ID' // Replace with your YouTube video ID
+    videoId: '6Rg86kDjoHw' // Replace with your YouTube video ID
 };
