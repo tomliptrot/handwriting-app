@@ -707,9 +707,12 @@ function hideStatus() {
 
 // Show QR code only on desktop
 function showQRCodeOnDesktop() {
+    const qrSection = document.getElementById('mobileQR');
     // Only show QR code on desktop (screen width > 768px)
     if (window.innerWidth <= 768) {
-        document.getElementById('mobileQR').style.display = 'none';
+        qrSection.style.display = 'none';
+    } else {
+        qrSection.style.display = 'block';
     }
 }
 
