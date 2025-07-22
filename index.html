@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Data Collection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Worker ID Input Section -->
+    <div class="worker-section" id="workerSection">
+        <div class="container">
+            <h1>OCR Data Collection Task</h1>
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    <li>Enter your worker ID below</li>
+                    <li>Write down each displayed code on paper with pen/pencil</li>
+                    <li>Take a clear photo of your handwritten code</li>
+                    <li>Upload the photo</li>
+                    <li>Repeat for all 10 codes</li>
+                </ol>
+            </div>
+            
+            <div class="worker-input">
+                <label for="workerId">Worker ID:</label>
+                <input type="text" id="workerId" placeholder="Enter your worker ID" required>
+                <button onclick="initializeWorker()">Start Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Task Interface -->
+    <div class="main-interface" id="mainInterface" style="display: none;">
+        <div class="container">
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-info">
+                    <span>Progress: <span id="completedCount">0</span> / <span id="targetCount">10</span></span>
+                    <span class="worker-id-display">Worker: <span id="workerIdDisplay"></span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <h1>Write This Code</h1>
+            
+            <!-- Code Display -->
+            <div class="code-display" id="currentCode">
+                #ABC1234
+            </div>
+            
+            <!-- Instructions -->
+            <div class="task-instructions">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Write the code above on blank paper with pen or pencil. Use capital letters only.</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <span class="step-text">Take a clear photo of your handwritten code</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Upload the photo using the button below</span>
+                </div>
+            </div>
+            
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <input type="file" id="cameraInput" accept="image/*" capture="environment">
+                <button class="take-photo-btn" onclick="takePhoto()">
+                    📷 Take Photo
+                </button>
+                <button class="skip-btn" onclick="skipCode()">
+                    ⏭️ Skip Code
+                </button>
+            </div>
+            
+            <!-- Photo Preview -->
+            <div class="photo-preview" id="photoPreview" style="display: none;">
+                <img id="previewImage" src="" alt="Photo preview">
+                <div class="preview-actions">
+                    <button class="confirm-btn" onclick="confirmUpload()">✓ Upload This Photo</button>
+                    <button class="retake-btn" onclick="retakePhoto()">🔄 Retake Photo</button>
+                </div>
+            </div>
+            
+            <!-- Status Messages -->
+            <div id="status" class="status" style="display: none;"></div>
+            
+            <!-- Worker Stats -->
+            <div class="worker-stats" id="workerStats" style="display: none;">
+                <h3>Your Progress</h3>
+                <div class="stat">
+                    <span class="stat-label">Total Images:</span>
+                    <span class="stat-value" id="totalImages">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Session Started:</span>
+                    <span class="stat-value" id="sessionTime">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div class="completion-screen" id="completionScreen" style="display: none;">
+        <div class="container">
+            <div class="completion-content">
+                <h1>✅ Task Complete!</h1>
+                <p>You've successfully completed all <span id="finalCount">10</span> images.</p>
+                <div class="completion-code">
+                    <p><strong>Your completion code is:</strong></p>
+                    <div class="code-display" id="completionCode"></div>
+                </div>
+                <div class="completion-stats">
+                    <h3>Final Statistics</h3>
+                    <div class="stat">
+                        <span class="stat-label">Total Images Uploaded:</span>
+                        <span class="stat-value" id="finalImageCount">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Session Duration:</span>
+                        <span class="stat-value" id="sessionDuration">-</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Codes Skipped:</span>
+                        <span class="stat-value" id="skippedCount">0</span>
+                    </div>
+                </div>
+                <p class="completion-note">
+                    Please save this completion code for your records.
+                    You can now close this window.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AWS SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1563.0.min.js"></script>
+    <script src="config.local.js"></script> <!-- Load local config first (if exists) -->
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
