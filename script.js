@@ -163,6 +163,31 @@ const Utils = {
             reader.onerror = error => reject(error);
             reader.readAsDataURL(file);
         });
+    },
+
+    /**
+     * Parse URL parameters
+     * @returns {Object} Object with URL parameters as key-value pairs
+     */
+    getURLParameters() {
+        const params = {};
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        
+        for (const [key, value] of urlSearchParams.entries()) {
+            params[key] = value;
+        }
+        
+        return params;
+    },
+
+    /**
+     * Get specific URL parameter
+     * @param {string} paramName - Parameter name to get
+     * @returns {string|null} Parameter value or null if not found
+     */
+    getURLParameter(paramName) {
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        return urlSearchParams.get(paramName);
     }
 };
 
@@ -714,6 +739,53 @@ const UIManager = {
     hideInstructionsAfterFirst() {
         DOMElements.instructionsContent.style.display = 'none';
         DOMElements.toggleInstructions.textContent = 'Show';
+    },
+
+    /**
+     * Initialize URL parameters and pre-fill form fields
+     */
+    initializeURLParameters() {
+        const workerIdFromURL = Utils.getURLParameter('worker');
+        
+        if (workerIdFromURL) {
+            // Validate the worker ID format before using it
+            const isValidFormat = APP_CONFIG.workerIdPattern.test(workerIdFromURL);
+            
+            const workerIdInput = document.getElementById('workerId');
+            if (workerIdInput) {
+                // Always pre-fill the value (even if invalid, let user see and correct it)
+                workerIdInput.value = workerIdFromURL;
+                
+                if (isValidFormat) {
+                    // Valid format - add positive visual indication
+                    workerIdInput.style.backgroundColor = '#e8f4f8';
+                    workerIdInput.style.borderColor = '#2c5aa0';
+                    
+                    // Focus on the start button instead of input field
+                    const startButton = workerIdInput.nextElementSibling;
+                    if (startButton) {
+                        startButton.focus();
+                    }
+                    
+                    console.log('Valid worker ID pre-filled from URL:', workerIdFromURL);
+                } else {
+                    // Invalid format - add warning visual indication
+                    workerIdInput.style.backgroundColor = '#fff3cd';
+                    workerIdInput.style.borderColor = '#ffc107';
+                    
+                    // Focus on the input field so user can correct it
+                    workerIdInput.focus();
+                    workerIdInput.select(); // Select all text for easy editing
+                    
+                    console.warn('Invalid worker ID format from URL:', workerIdFromURL);
+                    
+                    // Show a helpful message
+                    setTimeout(() => {
+                        this.showStatus('Worker ID from URL needs to be 3-20 characters (letters and numbers only)', 'error');
+                    }, 500);
+                }
+            }
+        }
     }
 };
 
@@ -1186,6 +1258,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Setup UI
         UIManager.updateTargetDisplay();
         UIManager.showQRCodeOnDesktop();
+        
+        // Initialize URL parameters (pre-fill worker ID if provided)
+        UIManager.initializeURLParameters();
         
         // Setup event handlers
         EventHandlers.initialize();
