@@ -10,6 +10,28 @@ exports.handler = async (event) => {
     }
 
     try {
+        // Validate environment variables
+        const requiredEnvVars = ['MAILGUN_API_KEY', 'MAILGUN_DOMAIN', 'ADMIN_EMAIL'];
+        const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+        
+        if (missingVars.length > 0) {
+            console.error('Missing environment variables:', missingVars);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ 
+                    error: 'Configuration error', 
+                    details: `Missing environment variables: ${missingVars.join(', ')}` 
+                })
+            };
+        }
+
+        // Log configuration (without exposing secrets)
+        console.log('Mailgun configuration check:');
+        console.log('- API Key present:', !!process.env.MAILGUN_API_KEY);
+        console.log('- API Key starts with "key-":', process.env.MAILGUN_API_KEY?.startsWith('key-'));
+        console.log('- Domain:', process.env.MAILGUN_DOMAIN);
+        console.log('- Admin email:', process.env.ADMIN_EMAIL);
+
         // Initialize Mailgun
         const mg = mailgun({
             apiKey: process.env.MAILGUN_API_KEY,
@@ -123,6 +145,21 @@ Time sent: ${new Date().toLocaleString()}
 
     } catch (error) {
         console.error('Error sending email:', error);
+        console.error('Error details:', {
+            message: error.message,
+            statusCode: error.statusCode,
+            stack: error.stack
+        });
+        
+        // Provide specific error messages based on status code
+        let errorMessage = 'Failed to send email';
+        if (error.statusCode === 401) {
+            errorMessage = 'Authentication failed - check MAILGUN_API_KEY and MAILGUN_DOMAIN';
+        } else if (error.statusCode === 403) {
+            errorMessage = 'Forbidden - check domain authorization and API key permissions';
+        } else if (error.statusCode === 400) {
+            errorMessage = 'Bad request - check email format and domain configuration';
+        }
         
         return {
             statusCode: 500,
@@ -132,7 +169,8 @@ Time sent: ${new Date().toLocaleString()}
             },
             body: JSON.stringify({ 
                 success: false, 
-                error: 'Failed to send email',
+                error: errorMessage,
+                statusCode: error.statusCode,
                 details: error.message 
             })
         };

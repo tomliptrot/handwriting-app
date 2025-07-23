@@ -65,18 +65,115 @@ The notification email includes:
    - Go to Netlify dashboard → Functions → send-completion-email
    - View recent invocations and logs
 
+## Testing Your Configuration
+
+After setting up your environment variables, test your configuration:
+
+1. **Use the Test Function**: Visit `https://your-site.netlify.app/.netlify/functions/test-mailgun`
+2. **Check the Response**: The function will test your configuration and send a test email
+3. **Review Logs**: Check Netlify function logs for detailed diagnostic information
+
 ## Troubleshooting
 
-### Email not received:
-1. Check environment variables are set correctly
-2. Verify Mailgun domain is active
-3. Check Netlify function logs for errors
-4. Ensure your email address is authorized in Mailgun (for sandbox domains)
+### **401 Forbidden Error (Authentication Failed)**
 
-### Function errors:
-1. Check Netlify function logs
-2. Verify package.json includes `mailgun-js` dependency
-3. Ensure all required environment variables are set
+This is the most common error. Check these items in order:
+
+1. **API Key Format**:
+   - Must start with `key-` (e.g., `key-1234567890abcdef`)
+   - Check for extra spaces or characters
+   - Verify it's the correct key from your Mailgun dashboard
+
+2. **Environment Variables**:
+   - Go to Netlify Dashboard → Site Settings → Environment Variables
+   - Ensure `MAILGUN_API_KEY` is set exactly (case-sensitive)
+   - No quotes around the value
+
+3. **API Key Permissions**:
+   - Use your **private** API key, not public
+   - Found in Mailgun Dashboard → Settings → API Keys
+   - Should have sending permissions
+
+4. **Domain Issues**:
+   - Verify `MAILGUN_DOMAIN` matches exactly what's in your Mailgun dashboard
+   - For sandbox: `sandboxXXXXXXXXXXXXXXXXXXXXXXXX.mailgun.org`
+   - For custom domain: `mg.yourdomain.com`
+
+### **403 Forbidden Error**
+
+1. **Domain Authorization**:
+   - Check if your domain is verified in Mailgun
+   - Ensure DNS records are properly configured
+   - Wait for domain verification to complete
+
+2. **Plan Limitations**:
+   - Verify your Mailgun plan allows sending
+   - Check if you've exceeded your sending limits
+
+### **400 Bad Request Error**
+
+1. **Email Format Issues**:
+   - Ensure `ADMIN_EMAIL` is a valid email address
+   - Check that the sender domain matches your Mailgun domain
+
+2. **Domain Format**:
+   - Domain should not include `http://` or `https://`
+   - Should be just the domain name (e.g., `mg.example.com`)
+
+### **Email not received**:
+1. **Check Spam Folder**: Emails might be filtered as spam
+2. **Authorized Recipients**: For sandbox domains, add your email as an authorized recipient
+3. **Domain Verification**: Ensure your sending domain is verified
+4. **Check Logs**: Review both Netlify function logs and Mailgun logs
+
+### **Function errors**:
+1. **Dependencies**: Verify `package.json` includes `mailgun-js` dependency
+2. **Environment Variables**: Use the test function to verify all variables are set
+3. **Function Logs**: Check Netlify function logs for detailed error messages
+4. **Deploy Status**: Ensure your latest changes are deployed
+
+## Step-by-Step Debugging
+
+1. **Run the Test Function**:
+   ```
+   https://your-site.netlify.app/.netlify/functions/test-mailgun
+   ```
+
+2. **Check Environment Variables**:
+   - All required variables present
+   - API key format correct
+   - Domain format correct
+
+3. **Verify in Mailgun Dashboard**:
+   - Domain is active and verified
+   - API key is valid and has permissions
+   - Sending limits not exceeded
+
+4. **Check Email Settings**:
+   - Admin email is authorized (for sandbox)
+   - Email address format is valid
+
+5. **Review Function Logs**:
+   - Netlify Dashboard → Functions → Logs
+   - Look for specific error codes and messages
+
+## Common Solutions
+
+### **Quick Fix for 401 Errors**:
+1. Go to Mailgun Dashboard → Settings → API Keys
+2. Copy your **Private API Key** (starts with `key-`)
+3. Update `MAILGUN_API_KEY` in Netlify environment variables
+4. Redeploy your site or trigger a new build
+
+### **For Sandbox Domains**:
+1. Go to Mailgun Dashboard → Sending → Authorized Recipients
+2. Add your admin email address
+3. Verify the email address via the confirmation email
+
+### **For Custom Domains**:
+1. Ensure all DNS records are configured correctly
+2. Wait for domain verification (can take up to 48 hours)
+3. Check domain status in Mailgun dashboard
 
 ## Security Notes
 
@@ -84,3 +181,4 @@ The notification email includes:
 - Use environment variables for all sensitive data
 - Consider using IP restrictions in Mailgun if available
 - Monitor your Mailgun usage to prevent abuse
+- Regularly rotate your API keys
