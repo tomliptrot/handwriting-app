@@ -30,12 +30,11 @@ exports.handler = async (event) => {
 
         // Validate API key format
         const apiKey = process.env.MAILGUN_API_KEY;
-        const apiKeyValid = apiKey && apiKey.startsWith('key-') && apiKey.length > 10;
+        const apiKeyValid = apiKey && apiKey.length > 5; // Just check it's present and reasonable length
         
         console.log('API Key validation:', {
             present: !!apiKey,
-            startsWithKey: apiKey?.startsWith('key-'),
-            validLength: apiKey?.length > 10,
+            validLength: apiKey?.length > 5,
             isValid: apiKeyValid
         });
 
@@ -68,7 +67,7 @@ exports.handler = async (event) => {
                 body: JSON.stringify({
                     success: false,
                     error: 'Invalid API key format',
-                    details: 'API key should start with "key-" and be longer than 10 characters',
+                    details: 'API key appears to be too short or missing',
                     envStatus: envStatus
                 })
             };

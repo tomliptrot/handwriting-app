@@ -80,7 +80,7 @@ After setting up your environment variables, test your configuration:
 This is the most common error. Check these items in order:
 
 1. **API Key Format**:
-   - Must start with `key-` (e.g., `key-1234567890abcdef`)
+   - Should be your complete API key from Mailgun dashboard
    - Check for extra spaces or characters
    - Verify it's the correct key from your Mailgun dashboard
 
@@ -161,7 +161,7 @@ This is the most common error. Check these items in order:
 
 ### **Quick Fix for 401 Errors**:
 1. Go to Mailgun Dashboard → Settings → API Keys
-2. Copy your **Private API Key** (starts with `key-`)
+2. Copy your **Private API Key** (full key string)
 3. Update `MAILGUN_API_KEY` in Netlify environment variables
 4. Redeploy your site or trigger a new build
 

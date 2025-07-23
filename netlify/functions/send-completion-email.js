@@ -28,7 +28,7 @@ exports.handler = async (event) => {
         // Log configuration (without exposing secrets)
         console.log('Mailgun configuration check:');
         console.log('- API Key present:', !!process.env.MAILGUN_API_KEY);
-        console.log('- API Key starts with "key-":', process.env.MAILGUN_API_KEY?.startsWith('key-'));
+        console.log('- API Key length:', process.env.MAILGUN_API_KEY?.length || 0);
         console.log('- Domain:', process.env.MAILGUN_DOMAIN);
         console.log('- Admin email:', process.env.ADMIN_EMAIL);
 
