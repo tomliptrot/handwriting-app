@@ -32,10 +32,11 @@ exports.handler = async (event) => {
         console.log('- Domain:', process.env.MAILGUN_DOMAIN);
         console.log('- Admin email:', process.env.ADMIN_EMAIL);
 
-        // Initialize Mailgun
+        // Initialize Mailgun with EU endpoint
         const mg = mailgun({
             apiKey: process.env.MAILGUN_API_KEY,
-            domain: process.env.MAILGUN_DOMAIN
+            domain: process.env.MAILGUN_DOMAIN,
+            host: 'api.eu.mailgun.net'  // Use EU endpoint
         });
 
         // Parse request body

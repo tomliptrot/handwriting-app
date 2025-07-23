@@ -73,10 +73,11 @@ exports.handler = async (event) => {
             };
         }
 
-        // Initialize Mailgun
+        // Initialize Mailgun with EU endpoint
         const mg = mailgun({
             apiKey: process.env.MAILGUN_API_KEY,
-            domain: process.env.MAILGUN_DOMAIN
+            domain: process.env.MAILGUN_DOMAIN,
+            host: 'api.eu.mailgun.net'  // Use EU endpoint
         });
 
         console.log('Mailgun client initialized successfully');
