@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "OCR data collection app for handwritten text samples",
   "dependencies": {
-    "aws-sdk": "^2.1563.0"
+    "aws-sdk": "^2.1563.0",
+    "mailgun-js": "^0.22.0"
   },
   "scripts": {
     "build": "echo 'No build step needed for static site'"

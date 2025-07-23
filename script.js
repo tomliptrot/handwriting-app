@@ -652,6 +652,38 @@ function updateStats() {
     }
 }
 
+async function sendCompletionEmail(completionCode, sessionDuration) {
+    try {
+        const emailData = {
+            workerId: workerId,
+            completedImages: completedImages,
+            sessionDuration: sessionDuration,
+            completionCode: completionCode,
+            skippedCodes: skippedCodes,
+            sessionStartTime: sessionStartTime ? sessionStartTime.getTime() : null
+        };
+
+        const response = await fetch('/.netlify/functions/send-completion-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('Completion email sent successfully');
+        } else {
+            console.error('Failed to send completion email:', result.error);
+        }
+    } catch (error) {
+        console.error('Error sending completion email:', error);
+        // Don't show error to user - email failure shouldn't affect their completion
+    }
+}
+
 async function showCompletion() {
     await completeSession();
     
@@ -663,6 +695,9 @@ async function showCompletion() {
     document.getElementById('finalImageCount').textContent = completedImages;
     document.getElementById('sessionDuration').textContent = formatDuration(duration);
     document.getElementById('skippedCount').textContent = skippedCodes;
+    
+    // Send completion email notification
+    await sendCompletionEmail(completionCode, formatDuration(duration));
     
     // Clear saved progress since session is complete
     clearProgress();
