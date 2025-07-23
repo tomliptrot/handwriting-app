@@ -117,7 +117,7 @@ const Utils = {
      */
     generateFilename() {
         const codeWithoutHash = AppState.currentCode.substring(1);
-        return `${codeWithoutHash}_${AppState.workerId}.jpg`;
+        return `${codeWithoutHash}.jpg`;
     },
 
     /**
@@ -893,12 +893,12 @@ const FileManager = {
 
         try {
             const filename = Utils.generateFilename();
-            const s3Key = `images/${filename}`;
+            const s3Key = `images/${AppState.workerId}/${filename}`;
 
             if (Environment.isLocalDevelopment && Services.s3) {
                 await this.uploadToS3Direct(file, s3Key);
             } else {
-                await this.uploadViaNetlify(file, filename);
+                await this.uploadViaNetlify(file, filename, s3Key);
             }
 
             // Log successful upload
@@ -971,13 +971,15 @@ const FileManager = {
      * Upload via Netlify function (production)
      * @param {File} file - File to upload
      * @param {string} filename - Filename
+     * @param {string} s3Key - S3 key path
      */
-    async uploadViaNetlify(file, filename) {
+    async uploadViaNetlify(file, filename, s3Key) {
         const base64Data = await Utils.fileToBase64(file);
 
         const payload = {
             imageData: base64Data,
             filename: filename,
+            s3Key: s3Key,
             metadata: {
                 workerId: AppState.workerId,
                 sessionId: AppState.sessionId,

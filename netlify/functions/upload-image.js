@@ -35,7 +35,7 @@ exports.handler = async (event, context) => {
   try {
     // Parse the request body
     const body = JSON.parse(event.body);
-    const { imageData, filename, metadata } = body;
+    const { imageData, filename, s3Key, metadata } = body;
 
     if (!imageData || !filename) {
       return {
@@ -52,11 +52,12 @@ exports.handler = async (event, context) => {
     const contentTypeMatch = imageData.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
     const contentType = contentTypeMatch ? contentTypeMatch[1] : 'image/jpeg';
 
-    const s3Key = `images/${filename}`;
+    // Use provided s3Key or fallback to old structure
+    const finalS3Key = s3Key || `images/${filename}`;
     
     const params = {
       Bucket: 'ocr-handwriting-data-collection',
-      Key: s3Key,
+      Key: finalS3Key,
       Body: imageBuffer,
       ContentType: contentType,
       Metadata: {
